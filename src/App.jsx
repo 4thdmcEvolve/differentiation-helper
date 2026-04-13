@@ -9,7 +9,6 @@ const SUBJECTS = ["English / ELA", "Math", "Science", "Social Studies", "Busines
 
 const LEVELS = [
   { id: "below", label: "⬇️ Below Grade Level", desc: "Simplified language, scaffolding, foundational support", color: "#e07b54" },
-  { id: "onlevel", label: "✅ On Grade Level", desc: "Standard version — your original lesson", color: GOLD },
   { id: "above", label: "⬆️ Above Grade Level", desc: "Extended challenge, deeper thinking, enrichment", color: "#5ab4e8" },
   { id: "ell", label: "🌍 English Language Learners", desc: "Visual supports, simplified language, vocabulary focus", color: "#7dc97d" },
   { id: "iep", label: "📋 IEP / Special Needs", desc: "Modified objectives, accommodations, step-by-step support", color: "#b07de8" },
@@ -86,7 +85,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState(null);
 
   const toggleLevel = (id) => {
-    if (id === "onlevel") return;
     setSelectedLevels(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
@@ -95,16 +93,16 @@ export default function App() {
   };
 
   const buildPrompt = () => {
-    const levelsToGenerate = selectedLevels.filter(l => l !== "onlevel");
+    const levelsToGenerate = selectedLevels;
     
-    return `You are an expert differentiation specialist. Your job is to provide ONLY the specific modifications needed to adapt a lesson for different learners.
+    return `You are an expert differentiation specialist. Provide specific, actionable modifications to adapt this lesson for different learners.
 
 CRITICAL RULES:
 - Use PLAIN TEXT only. No markdown, no asterisks, no hashtags, no bold formatting.
-- Do NOT rewrite the entire lesson. Only list the CHANGES needed.
-- Keep each modification to ONE sentence.
+- Do NOT rewrite the entire lesson. Focus on MODIFICATIONS to the original.
+- For EACH element selected, provide 2-3 specific changes with examples.
 - Be specific and actionable, not vague.
-- Total response must be under 600 words.
+- Total response must be under 900 words.
 
 ORIGINAL LESSON INFO:
 Subject: ${subject || "General"}
@@ -118,25 +116,38 @@ ORIGINAL CONTENT:
 ${lessonContent}
 """
 
-For each learner group below, provide ONLY the modifications in this exact format:
+For EACH learner group below, provide modifications using this format:
 
-[GROUP NAME]
-${selectedElements.map(el => `- ${el}: [specific change]`).join("\n")}
-- Teacher Tip: [one practical tip]
+[GROUP NAME IN CAPS]
+
+[Element Name]:
+- First specific modification with example
+- Second specific modification with example
+- Third modification if needed
+
+[Next Element Name]:
+- First specific modification with example
+- Second specific modification with example
+
+Teacher Tips:
+- One practical classroom tip for this group
+- One tip for materials or setup
+
+IMPORTANT: You MUST address EVERY element listed above for EACH group. Do not skip elements.
 
 ${levelsToGenerate.includes("below") ? `BELOW GRADE LEVEL
-Provide modifications that simplify language, add scaffolding, break tasks into smaller steps, and reduce complexity while keeping the core concept.` : ""}
+Simplify language, add scaffolding (sentence starters, word banks, graphic organizers), break tasks into smaller steps, reduce complexity while keeping the core concept. Provide specific examples of simplified text and step breakdowns.` : ""}
 
 ${levelsToGenerate.includes("above") ? `ABOVE GRADE LEVEL
-Provide modifications that add depth, critical thinking, extension tasks, and higher-order questions. Challenge without just adding more work.` : ""}
+Add depth, critical thinking, extension tasks, and higher-order questions (analyze, evaluate, create). Challenge without just adding more work. Provide specific examples of enrichment activities and advanced questions.` : ""}
 
 ${levelsToGenerate.includes("ell") ? `ENGLISH LANGUAGE LEARNERS
-Provide modifications that simplify sentence structure, define key vocabulary, add visual supports, and reduce idiomatic language.` : ""}
+Simplify sentence structure, define key vocabulary in context, add visual support suggestions, reduce idiomatic language. Provide specific examples of vocabulary supports and visual aids to create.` : ""}
 
 ${levelsToGenerate.includes("iep") ? `IEP / SPECIAL NEEDS
-Provide modifications that break down steps, reduce written output, offer alternative response formats, and include specific accommodations.` : ""}
+Break down steps, reduce written output, offer alternative response formats, include specific accommodations. Provide specific examples of modified tasks and accommodation strategies.` : ""}
 
-Remember: Output ONLY the bullet-point modifications for each group. Do NOT rewrite or regenerate the lesson content. Keep it compact and immediately usable.`;
+Remember: Provide 2-3 specific modifications per element, not just one-liners. Include concrete examples teachers can use immediately.`;
   };
 
   const generate = async () => {
