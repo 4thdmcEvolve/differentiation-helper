@@ -138,29 +138,6 @@ Provide modifications that break down steps, reduce written output, offer altern
 
 Remember: Output ONLY the bullet-point modifications for each group. Do NOT rewrite or regenerate the lesson content. Keep it compact and immediately usable.`;
   };
-```
-
-**What changed:**
-1. Added "under 600 words" hard limit
-2. Tells AI to output ONLY modifications, not rewrite the lesson
-3. Shows exact format: one line per element selected
-4. One teacher tip per group instead of 2-3
-5. Reinforced "Do NOT rewrite or regenerate the lesson content"
-6. Plain text rules added
-
-This should give output like:
-```
-BELOW GRADE LEVEL
-- Vocabulary & language: Replace "photosynthesis" with "how plants make food from sunlight"
-- Instructions & directions: Break step 3 into three smaller numbered steps
-- Assignment complexity: Reduce questions from 10 to 5, provide word bank
-- Teacher Tip: Pre-teach vocabulary with picture cards before the lesson
-
-ABOVE GRADE LEVEL
-- Vocabulary & language: Add scientific terminology like "chloroplasts" and "glucose synthesis"
-- Instructions & directions: Remove scaffolding, allow student-directed research
-- Assignment complexity: Add comparison to cellular respiration with Venn diagram
-- Teacher Tip: Pair with struggling students as peer tutors after mastery
 
   const generate = async () => {
     if (!lessonContent.trim()) { setError("Please paste your lesson content or describe your lesson."); return; }
