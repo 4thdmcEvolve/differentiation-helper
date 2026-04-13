@@ -96,39 +96,71 @@ export default function App() {
 
   const buildPrompt = () => {
     const levelsToGenerate = selectedLevels.filter(l => l !== "onlevel");
-    const levelDescriptions = {
-      below: "BELOW GRADE LEVEL: Simplify language, add scaffolding (sentence starters, word banks, graphic organizers), break tasks into smaller steps, reduce complexity while keeping the core concept intact.",
-      above: "ABOVE GRADE LEVEL: Add depth, critical thinking, extension tasks, connections to real-world application, higher-order questions (analyze, evaluate, create). Challenge without just adding more work.",
-      ell: "ENGLISH LANGUAGE LEARNERS: Simplify sentence structure, define key vocabulary in context, add visual support suggestions, reduce idiomatic language, allow for native language support where possible.",
-      iep: "IEP / SPECIAL NEEDS ACCOMMODATIONS: Modify objectives to be achievable, provide step-by-step instructions, reduce written output requirements, offer alternative response formats, include suggested accommodations.",
-    };
+    
+    return `You are an expert differentiation specialist. Your job is to provide ONLY the specific modifications needed to adapt a lesson for different learners.
 
-    return `You are an expert special education and differentiation specialist.
+CRITICAL RULES:
+- Use PLAIN TEXT only. No markdown, no asterisks, no hashtags, no bold formatting.
+- Do NOT rewrite the entire lesson. Only list the CHANGES needed.
+- Keep each modification to ONE sentence.
+- Be specific and actionable, not vague.
+- Total response must be under 600 words.
 
-Original Lesson Info:
+ORIGINAL LESSON INFO:
 Subject: ${subject || "General"}
 Grade Level: ${grade || "Not specified"}
 Topic: ${topic || "Not specified"}
-Elements to Differentiate: ${selectedElements.join(", ")}
-${extraContext ? `Additional Context: ${extraContext}` : ""}
+Elements to Modify: ${selectedElements.join(", ")}
+${extraContext ? `Context: ${extraContext}` : ""}
 
-Original Lesson / Content:
+ORIGINAL CONTENT:
 """
 ${lessonContent}
 """
 
-Generate differentiated versions for these learner groups:
-${levelsToGenerate.map(l => levelDescriptions[l]).join("\n\n")}
+For each learner group below, provide ONLY the modifications in this exact format:
 
-For EACH version:
-- Label it clearly with the group name in ALL CAPS as a header
-- Modify ONLY the elements specified above
-- Keep the core learning objective the same across all versions
-- Be specific and immediately usable — not vague suggestions
-- Include 2-3 practical teacher tips specific to that group at the end of each version
+[GROUP NAME]
+${selectedElements.map(el => `- ${el}: [specific change]`).join("\n")}
+- Teacher Tip: [one practical tip]
 
-Separate each version clearly. Be thorough but practical.`;
+${levelsToGenerate.includes("below") ? `BELOW GRADE LEVEL
+Provide modifications that simplify language, add scaffolding, break tasks into smaller steps, and reduce complexity while keeping the core concept.` : ""}
+
+${levelsToGenerate.includes("above") ? `ABOVE GRADE LEVEL
+Provide modifications that add depth, critical thinking, extension tasks, and higher-order questions. Challenge without just adding more work.` : ""}
+
+${levelsToGenerate.includes("ell") ? `ENGLISH LANGUAGE LEARNERS
+Provide modifications that simplify sentence structure, define key vocabulary, add visual supports, and reduce idiomatic language.` : ""}
+
+${levelsToGenerate.includes("iep") ? `IEP / SPECIAL NEEDS
+Provide modifications that break down steps, reduce written output, offer alternative response formats, and include specific accommodations.` : ""}
+
+Remember: Output ONLY the bullet-point modifications for each group. Do NOT rewrite or regenerate the lesson content. Keep it compact and immediately usable.`;
   };
+```
+
+**What changed:**
+1. Added "under 600 words" hard limit
+2. Tells AI to output ONLY modifications, not rewrite the lesson
+3. Shows exact format: one line per element selected
+4. One teacher tip per group instead of 2-3
+5. Reinforced "Do NOT rewrite or regenerate the lesson content"
+6. Plain text rules added
+
+This should give output like:
+```
+BELOW GRADE LEVEL
+- Vocabulary & language: Replace "photosynthesis" with "how plants make food from sunlight"
+- Instructions & directions: Break step 3 into three smaller numbered steps
+- Assignment complexity: Reduce questions from 10 to 5, provide word bank
+- Teacher Tip: Pre-teach vocabulary with picture cards before the lesson
+
+ABOVE GRADE LEVEL
+- Vocabulary & language: Add scientific terminology like "chloroplasts" and "glucose synthesis"
+- Instructions & directions: Remove scaffolding, allow student-directed research
+- Assignment complexity: Add comparison to cellular respiration with Venn diagram
+- Teacher Tip: Pair with struggling students as peer tutors after mastery
 
   const generate = async () => {
     if (!lessonContent.trim()) { setError("Please paste your lesson content or describe your lesson."); return; }
