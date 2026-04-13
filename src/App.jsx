@@ -102,7 +102,7 @@ CRITICAL RULES:
 - Do NOT rewrite the entire lesson. Focus on MODIFICATIONS to the original.
 - For EACH element selected, provide 2-3 specific changes with examples.
 - Be specific and actionable, not vague.
-- Total response must be under 900 words.
+- Total response must be under 700 words.
 
 ORIGINAL LESSON INFO:
 Subject: ${subject || "General"}
@@ -438,7 +438,7 @@ Remember: Provide 2-3 specific modifications per element, not just one-liners. I
       </div>
 
       <div style={{ textAlign: "center", color: "rgba(255,255,255,0.18)", fontSize: 10, letterSpacing: 3, textTransform: "uppercase", marginTop: 20 }}>
-        Powered by <span style={{ color: "rgba(201,168,76,0.35)" }}>4THDMC | EVOLVE</span> · Brandon Russell
+        Powered by <span style={{ color: "rgba(201,168,76,0.35)" }}>4THDMC | EVOLVE LLC </span> · Brandon Russell
       </div>
     </div>
   );
