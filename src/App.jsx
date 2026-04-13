@@ -85,11 +85,27 @@ export default function App() {
   const [activeTab, setActiveTab] = useState(null);
 
   const toggleLevel = (id) => {
-    setSelectedLevels(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    setSelectedLevels(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(x => x !== id);
+      }
+      if (prev.length >= 2) {
+        return prev; // Block selection if already at 2
+      }
+      return [...prev, id];
+    });
   };
 
-  const toggleElement = (el) => {
-    setSelectedElements(prev => prev.includes(el) ? prev.filter(x => x !== el) : [...prev, el]);
+ const toggleElement = (el) => {
+    setSelectedElements(prev => {
+      if (prev.includes(el)) {
+        return prev.filter(x => x !== el);
+      }
+      if (prev.length >= 3) {
+        return prev; // Block selection if already at 3
+      }
+      return [...prev, el];
+    });
   };
 
   const buildPrompt = () => {
@@ -303,7 +319,7 @@ Remember: Provide 2-3 specific modifications per element, not just one-liners. I
             {/* LEARNER GROUPS */}
             <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "22px 18px", marginBottom: 16 }}>
               <div style={{ color: GOLD, fontWeight: 700, fontSize: 11, letterSpacing: 3, textTransform: "uppercase", marginBottom: 6 }}>✦ Generate Versions For</div>
-              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, marginBottom: 16 }}>Select all learner groups you need</div>
+              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, marginBottom: 16 }}>Select up to 2 learner groups per use</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {LEVELS.map(({ id, label, desc, color }) => {
                   const isOnLevel = id === "onlevel";
@@ -337,7 +353,7 @@ Remember: Provide 2-3 specific modifications per element, not just one-liners. I
             {/* ELEMENTS TO DIFFERENTIATE */}
             <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "22px 18px", marginBottom: 16 }}>
               <div style={{ color: GOLD, fontWeight: 700, fontSize: 11, letterSpacing: 3, textTransform: "uppercase", marginBottom: 6 }}>✦ What To Differentiate</div>
-              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, marginBottom: 14 }}>Select the elements to modify</div>
+              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, marginBottom: 14 }}>Select up to 3 elements to modify per use</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {ELEMENTS.map(el => (
                   <button key={el} onClick={() => toggleElement(el)} style={{
