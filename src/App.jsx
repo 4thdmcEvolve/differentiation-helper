@@ -70,7 +70,94 @@ const renderContent = (text) =>
     return <div key={i} style={{ fontSize: 13, color: "#444", lineHeight: 1.75, margin: "2px 0" }}>{t.replace(/\*\*/g, "")}</div>;
   });
 
+// ─── PASSWORD GATE ─────────────────────────────────────────────────────────
+function PasswordGate({ onUnlock }) {
+  const [pw, setPw] = useState("");
+  const [error, setError] = useState("");
+  const [checking, setChecking] = useState(false);
+
+  const handleUnlock = async () => {
+    if (!pw.trim()) { setError("Please enter the access password."); return; }
+    setChecking(true);
+    setError("");
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pw.trim() })
+      });
+      if (res.ok) {
+        localStorage.setItem("toolkit_password", pw.trim());
+        onUnlock(pw.trim());
+      } else {
+        setError("Incorrect password. Please check your subscriber email and try again.");
+        setPw("");
+      }
+    } catch {
+      setError("Connection error. Please try again.");
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: `linear-gradient(160deg, ${DARK} 0%, ${NAVY} 100%)`, fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ width: "100%", maxWidth: 420 }}>
+        <div style={{ textAlign: "center", marginBottom: 36 }}>
+          <div style={{ fontWeight: 900, fontSize: 15, color: "#fff", letterSpacing: 2, marginBottom: 6 }}>
+            4THDMC <span style={{ color: GOLD }}>|</span> EVOLVE LLC
+          </div>
+          <div style={{ fontSize: "clamp(24px, 5vw, 34px)", fontWeight: 900, color: "#fff", lineHeight: 1.15, marginBottom: 8 }}>
+            DIFFERENTIATION<br /><span style={{ color: GOLD }}>HELPER</span>
+          </div>
+          <div style={{ width: 36, height: 3, background: GOLD, margin: "12px auto" }} />
+          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Subscriber access required</div>
+        </div>
+
+        <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: 28 }}>
+          <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>
+            Access Password
+          </div>
+          <input
+            type="password"
+            value={pw}
+            onChange={e => setPw(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleUnlock()}
+            placeholder="Enter your toolkit password"
+            style={{ width: "100%", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "#fff", padding: "12px 14px", fontSize: 14, outline: "none", fontFamily: "inherit", boxSizing: "border-box", marginBottom: 12 }}
+            autoFocus
+          />
+          {error && (
+            <div style={{ background: "rgba(255,80,80,0.12)", border: "1px solid rgba(255,80,80,0.3)", color: "#ff9090", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 14 }}>
+              {error}
+            </div>
+          )}
+          <button
+            onClick={handleUnlock}
+            disabled={checking}
+            style={{ width: "100%", padding: 16, background: checking ? "rgba(201,168,76,0.4)" : GOLD, color: DARK, border: "none", borderRadius: 10, fontWeight: 900, fontSize: 15, letterSpacing: 2, cursor: checking ? "not-allowed" : "pointer", textTransform: "uppercase" }}
+          >
+            {checking ? "Checking..." : "Unlock Tool"}
+          </button>
+          <div style={{ textAlign: "center", marginTop: 18, color: "rgba(255,255,255,0.25)", fontSize: 12 }}>
+            Not a subscriber?{" "}
+            <a href="https://brrteaching.com" style={{ color: GOLD, textDecoration: "none" }}>Visit brrteaching.com</a>
+          </div>
+        </div>
+
+        <div style={{ textAlign: "center", marginTop: 24, color: "rgba(255,255,255,0.18)", fontSize: 10, letterSpacing: 3, textTransform: "uppercase" }}>
+          © 2026 4THDMC | EVOLVE LLC · All Rights Reserved
+        </div>
+      </div>
+    </div>
+  );
+}
+// ──────────────────────────────────────────────────────────────────────────
+
 export default function App() {
+  const stored = localStorage.getItem("toolkit_password") || "";
+  const [unlockedPw, setUnlockedPw] = useState(stored);
+
   const [subject, setSubject] = useState("");
   const [grade, setGrade] = useState("");
   const [topic, setTopic] = useState("");
@@ -84,33 +171,29 @@ export default function App() {
   const [copiedKey, setCopiedKey] = useState(null);
   const [activeTab, setActiveTab] = useState(null);
 
+  if (!unlockedPw) {
+    return <PasswordGate onUnlock={(pw) => setUnlockedPw(pw)} />;
+  }
+
   const toggleLevel = (id) => {
     setSelectedLevels(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(x => x !== id);
-      }
-      if (prev.length >= 2) {
-        return prev; // Block selection if already at 2
-      }
+      if (prev.includes(id)) return prev.filter(x => x !== id);
+      if (prev.length >= 2) return prev;
       return [...prev, id];
     });
   };
 
- const toggleElement = (el) => {
+  const toggleElement = (el) => {
     setSelectedElements(prev => {
-      if (prev.includes(el)) {
-        return prev.filter(x => x !== el);
-      }
-      if (prev.length >= 3) {
-        return prev; // Block selection if already at 3
-      }
+      if (prev.includes(el)) return prev.filter(x => x !== el);
+      if (prev.length >= 3) return prev;
       return [...prev, el];
     });
   };
 
   const buildPrompt = () => {
     const levelsToGenerate = selectedLevels;
-    
+
     return `You are an expert differentiation specialist. Provide specific, actionable modifications to adapt this lesson for different learners.
 
 CRITICAL RULES:
@@ -175,11 +258,23 @@ Remember: Provide 2-3 specific modifications per element, not just one-liners. I
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: buildPrompt() })
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 1200,
+          messages: [{ role: "user", content: buildPrompt() }],
+          toolkitPassword: unlockedPw
+        })
       });
+
+      if (res.status === 401) {
+        localStorage.removeItem("toolkit_password");
+        setUnlockedPw("");
+        return;
+      }
+
       const json = await res.json();
-      if (json.error) { setError("Error: " + json.error); return; }
-      const text = json.text;
+      if (json.error) { setError("Error: " + json.error.message); return; }
+      const text = (json.content || []).filter(b => b.type === "text").map(b => b.text).join("");
       if (!text) { setError("Nothing returned. Try again."); return; }
 
       // Parse sections by level headers
@@ -218,7 +313,6 @@ Remember: Provide 2-3 specific modifications per element, not just one-liners. I
         parsed[currentLevel] = currentLines.join("\n").trim();
       }
 
-      // Fallback: if parsing failed, show full text
       if (Object.keys(parsed).length === 0) {
         parsed["below"] = text;
       }
@@ -246,9 +340,17 @@ Remember: Provide 2-3 specific modifications per element, not just one-liners. I
       {/* NAV */}
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ fontWeight: 900, fontSize: 16, color: "#fff", letterSpacing: 1 }}>
-          4THDMC <span style={{ color: GOLD }}>|</span> EVOLVE
+          4THDMC <span style={{ color: GOLD }}>|</span> EVOLVE LLC
         </div>
-        <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, letterSpacing: 2, textTransform: "uppercase" }}>Teacher Toolkit</div>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, letterSpacing: 2, textTransform: "uppercase" }}>Teacher Toolkit</div>
+          <button
+            onClick={() => { localStorage.removeItem("toolkit_password"); setUnlockedPw(""); }}
+            style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.4)", fontSize: 11, padding: "4px 10px", borderRadius: 6, cursor: "pointer" }}
+          >
+            Lock
+          </button>
+        </div>
       </div>
 
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "32px 18px" }}>
@@ -257,7 +359,7 @@ Remember: Provide 2-3 specific modifications per element, not just one-liners. I
         {!results && (
           <div style={{ marginBottom: 28 }}>
             <div style={{ display: "inline-block", border: `1px solid ${GOLD}`, color: GOLD, fontSize: 10, letterSpacing: 4, padding: "4px 14px", marginBottom: 12, fontWeight: 700, borderRadius: 2, textTransform: "uppercase" }}>
-              4THDMC | EVOLVE
+              4THDMC | EVOLVE LLC
             </div>
             <div style={{ fontSize: "clamp(28px, 7vw, 44px)", fontWeight: 900, color: "#fff", lineHeight: 1.1 }}>
               DIFFERENTIATION<br /><span style={{ color: GOLD }}>HELPER</span>
@@ -322,15 +424,13 @@ Remember: Provide 2-3 specific modifications per element, not just one-liners. I
               <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, marginBottom: 16 }}>Select up to 2 learner groups per use</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {LEVELS.map(({ id, label, desc, color }) => {
-                  const isOnLevel = id === "onlevel";
-                  const selected = isOnLevel ? false : selectedLevels.includes(id);
+                  const selected = selectedLevels.includes(id);
                   return (
-                    <button key={id} onClick={() => toggleLevel(id)} disabled={isOnLevel} style={{
-                      padding: "13px 16px", borderRadius: 10, cursor: isOnLevel ? "default" : "pointer",
+                    <button key={id} onClick={() => toggleLevel(id)} style={{
+                      padding: "13px 16px", borderRadius: 10, cursor: "pointer",
                       textAlign: "left", display: "flex", alignItems: "center", gap: 14,
                       border: `1px solid ${selected ? color : "rgba(255,255,255,0.12)"}`,
-                      background: selected ? `${color}18` : isOnLevel ? "rgba(255,255,255,0.01)" : "rgba(255,255,255,0.02)",
-                      opacity: isOnLevel ? 0.4 : 1,
+                      background: selected ? `${color}18` : "rgba(255,255,255,0.02)",
                     }}>
                       <div style={{
                         width: 20, height: 20, borderRadius: 4, flexShrink: 0,
@@ -384,10 +484,9 @@ Remember: Provide 2-3 specific modifications per element, not just one-liners. I
         {/* RESULTS */}
         {results && (
           <div>
-            {/* Result header */}
             <div style={{ marginBottom: 20 }}>
               <div style={{ display: "inline-block", border: `1px solid ${GOLD}`, color: GOLD, fontSize: 10, letterSpacing: 4, padding: "4px 14px", marginBottom: 10, fontWeight: 700, borderRadius: 2, textTransform: "uppercase" }}>
-                4THDMC | EVOLVE
+                4THDMC | EVOLVE LLC
               </div>
               <div style={{ fontSize: 28, fontWeight: 900, color: "#fff", lineHeight: 1.1 }}>
                 DIFFERENTIATED<br /><span style={{ color: GOLD }}>VERSIONS READY</span>
@@ -454,7 +553,8 @@ Remember: Provide 2-3 specific modifications per element, not just one-liners. I
       </div>
 
       <div style={{ textAlign: "center", color: "rgba(255,255,255,0.18)", fontSize: 10, letterSpacing: 3, textTransform: "uppercase", marginTop: 20 }}>
-        Powered by <span style={{ color: "rgba(201,168,76,0.35)" }}>4THDMC | EVOLVE LLC </span> · Brandon Russell
+        © 2026 4THDMC | EVOLVE LLC · All Rights Reserved<br />
+        <span style={{ color: "rgba(201,168,76,0.35)" }}>Brandon Russell · The Multiplier · Chattanooga, TN</span>
       </div>
     </div>
   );
